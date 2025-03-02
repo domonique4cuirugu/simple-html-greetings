@@ -15,6 +15,7 @@ export type Database = {
           id: string
           name: string
           size: number
+          storage_path: string | null
           type: string
           uploaded_at: string
           uploaded_by: string
@@ -24,6 +25,7 @@ export type Database = {
           id?: string
           name: string
           size: number
+          storage_path?: string | null
           type: string
           uploaded_at?: string
           uploaded_by: string
@@ -33,6 +35,7 @@ export type Database = {
           id?: string
           name?: string
           size?: number
+          storage_path?: string | null
           type?: string
           uploaded_at?: string
           uploaded_by?: string
@@ -210,6 +213,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           username: string | null
         }
@@ -218,6 +222,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           username?: string | null
         }
@@ -226,6 +231,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           username?: string | null
         }
@@ -254,6 +260,24 @@ export type Database = {
               unread_count: number
             }[]
           }
+      get_user_role: {
+        Args: {
+          user_id: string
+        }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin_or_collaborator: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       task_priority: "Low" | "Medium" | "High" | "Urgent"
@@ -263,6 +287,7 @@ export type Database = {
         | "Consultation"
         | "Bookkeeping"
         | "Payroll"
+      user_role: "Admin" | "Collaborator" | "Client"
     }
     CompositeTypes: {
       [_ in never]: never
