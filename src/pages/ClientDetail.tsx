@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Mail, Building, Clock, Edit, Trash, Upload, Download, Send } from "lucide-react";
@@ -27,7 +26,6 @@ import FileList, { FileItem } from "@/components/FileList";
 import FileUpload from "@/components/FileUpload";
 import type { Message } from "@/services/messageService";
 import { fileService, getFileType } from "@/services/fileService";
-import { useQuery } from "@tanstack/react-query";
 
 interface Client {
   id: string;
@@ -45,7 +43,7 @@ interface Client {
 }
 
 const ClientDetail: React.FC = () => {
-  const { id: clientId } = useParams<{ id: string }>();
+  const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,16 +60,7 @@ const ClientDetail: React.FC = () => {
   const currentUserId = "user-001"; // Replace with actual user ID
 
   useEffect(() => {
-    if (!clientId) {
-      toast({
-        title: "Error",
-        description: "Client ID is missing",
-        variant: "destructive",
-      });
-      navigate("/");
-      return;
-    }
-    
+    if (!clientId) return;
     fetchClient();
     fetchMessages();
     fetchFiles();
@@ -89,8 +78,6 @@ const ClientDetail: React.FC = () => {
   };
 
   const fetchClient = async () => {
-    if (!clientId) return;
-    
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -123,24 +110,14 @@ const ClientDetail: React.FC = () => {
       const initialMessages: Message[] = [
         {
           id: "1",
-          sender: { 
-            id: "user-001", 
-            name: "You", 
-            avatar: "/avatars/7.png",
-            isAccountant: true // Add missing isAccountant property
-          },
+          sender: { id: "user-001", name: "You", avatar: "/avatars/7.png" },
           timestamp: new Date(),
           content: "Hello! How can I assist you today?",
           read: true,
         },
         {
           id: "2",
-          sender: { 
-            id: "client-001", 
-            name: client?.name || "Client", 
-            avatar: "/avatars/1.png",
-            isAccountant: false // Add missing isAccountant property
-          },
+          sender: { id: "client-001", name: client?.name || "Client", avatar: "/avatars/1.png" },
           timestamp: new Date(),
           content: "I have a question about my tax return.",
           read: true,
@@ -262,7 +239,6 @@ const ClientDetail: React.FC = () => {
         id: currentUserId,
         name: "You",
         avatar: "/avatars/7.png",
-        isAccountant: true // Add missing isAccountant property
       },
       timestamp: new Date(),
       content: newMessage,
@@ -423,8 +399,9 @@ const ClientDetail: React.FC = () => {
                 <MessageList messages={messages} currentUserId={currentUserId} />
                 <div ref={bottomRef} />
                 <MessageInput
-                  onSendMessage={handleSendMessage}
-                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onSend={handleSendMessage}
                 />
               </CardContent>
             </Card>

@@ -61,14 +61,12 @@ const ClientCard: React.FC<ClientCardProps> = ({ client }) => {
         </div>
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <div className="w-full flex gap-2">
-          <Button asChild variant="default" className="w-full justify-between group">
-            <Link to={`/client/${client.id}`}>
-              <span>View Details</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
-        </div>
+        <Button asChild variant="ghost" className="w-full justify-between group">
+          <Link to={`/client/${client.id}`}>
+            <span>View Details</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );

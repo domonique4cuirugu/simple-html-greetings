@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Search, User, CheckCheck, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,12 +12,10 @@ import { MessageSquare } from "lucide-react";
 import { getConversations, getMessagesForClient, sendMessage, Conversation, Message } from "@/services/messageService";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useParams } from "react-router-dom";
 
 const Messages = () => {
-  const { id: clientIdFromUrl } = useParams<{ id?: string }>();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(clientIdFromUrl || null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -27,13 +24,6 @@ const Messages = () => {
     queryKey: ['conversations'],
     queryFn: getConversations
   });
-
-  // Set active conversation ID from URL parameter if provided and valid
-  useEffect(() => {
-    if (clientIdFromUrl && conversations.some(conv => conv.clientId === clientIdFromUrl)) {
-      setActiveConversationId(clientIdFromUrl);
-    }
-  }, [clientIdFromUrl, conversations]);
 
   // Fetch messages for active conversation
   const { data: activeMessages = [], isLoading: messagesLoading } = useQuery({
@@ -86,25 +76,25 @@ const Messages = () => {
     sendMessageMutation.mutate(content);
   };
 
-  // Setup realtime subscription for messages
-  useEffect(() => {
-    const channel = supabase
-      .channel('public:client_messages')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'client_messages'
-      }, (payload) => {
-        // Invalidate queries when message data changes
-        queryClient.invalidateQueries({ queryKey: ['messages'] });
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+    // Setup realtime subscription for messages
+    useEffect(() => {
+      const channel = supabase
+        .channel('public:client_messages')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'client_messages'
+        }, (payload) => {
+          // Invalidate queries when message data changes
+          queryClient.invalidateQueries({ queryKey: ['messages'] });
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        })
+        .subscribe();
+  
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [queryClient]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10">

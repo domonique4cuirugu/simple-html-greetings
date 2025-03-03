@@ -130,39 +130,6 @@ export type Database = {
         }
         Relationships: []
       }
-      companies: {
-        Row: {
-          address: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string
-          id: string
-          industry: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          industry?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          industry?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       kanban_columns: {
         Row: {
           created_at: string
@@ -243,46 +210,32 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          company_id: string | null
           created_at: string
           full_name: string | null
           id: string
-          onboarding_completed: boolean | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
-          company_id?: string | null
           created_at?: string
           full_name?: string | null
           id: string
-          onboarding_completed?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
-          company_id?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
-          onboarding_completed?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           username?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
