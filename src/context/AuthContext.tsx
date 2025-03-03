@@ -11,6 +11,8 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  onboardingCompleted: boolean;
+  checkOnboardingStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -19,7 +21,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const { toast } = useToast();
+
+  const checkOnboardingStatus = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      
+      setOnboardingCompleted(!!data?.onboarding_completed);
+      return !!data?.onboarding_completed;
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Get initial session
@@ -27,6 +50,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        checkOnboardingStatus();
+      }
     });
 
     // Listen for auth changes
@@ -35,6 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        if (session?.user) {
+          checkOnboardingStatus();
+        } else {
+          setOnboardingCompleted(false);
+        }
       }
     );
 
@@ -121,6 +154,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     loading,
+    onboardingCompleted,
+    checkOnboardingStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

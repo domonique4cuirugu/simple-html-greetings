@@ -6,12 +6,6 @@ import ClientCard, { Client } from "./ClientCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-declare module '@supabase/supabase-js' {
-  interface SupabaseClient {
-    rpc<T = any>(functionName: 'get_unread_counts'): Promise<{ data: T | null; error: Error | null }>;
-  }
-}
-
 const ClientList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
@@ -22,45 +16,85 @@ const ClientList: React.FC = () => {
     const fetchClients = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Fetch only profiles with "Client" role and completed onboarding
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, company_id')
+          .eq('role', 'Client')
+          .eq('onboarding_completed', true);
+          
+        if (profilesError) {
+          throw profilesError;
+        }
+        
+        if (!profilesData || profilesData.length === 0) {
+          setClients([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Get the company details for each client profile
+        const profileIds = profilesData.map(profile => profile.id);
+        const companyIds = profilesData
+          .filter(profile => profile.company_id)
+          .map(profile => profile.company_id);
+          
+        // Get companies data
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('companies')
+          .select('id, name')
+          .in('id', companyIds);
+          
+        if (companiesError) {
+          throw companiesError;
+        }
+        
+        // Create a map of company id to company name
+        const companyMap = new Map();
+        companiesData?.forEach(company => {
+          companyMap.set(company.id, company.name);
+        });
+        
+        // Get client data
+        const { data: clientsData, error: clientsError } = await supabase
           .from('clients')
           .select('*')
           .order('name');
+          
+        if (clientsError) {
+          throw clientsError;
+        }
+        
+        // Fetch unread message counts
+        const { data: messageData, error: messageError } = await supabase
+          .rpc('get_unread_counts');
 
-        if (error) {
-          throw error;
+        if (messageError) {
+          console.error("Error fetching unread counts:", messageError);
         }
 
-        const formattedClients = data.map(client => ({
+        console.log('messageData', messageData);
+        
+        // Create message count map
+        const messageCountMap = new Map();
+        if (messageData) {
+          messageData.forEach(item => {
+            messageCountMap.set(item.client_id, parseInt(item.count));
+          });
+        }
+
+        // Combine all the data to create client objects
+        const formattedClients = clientsData.map(client => ({
           id: client.id,
           name: client.name,
           company: client.company,
           email: client.email,
           phone: client.phone,
           lastActivity: new Date(client.last_activity),
-          // Calculate unread messages and pending files
-          unreadMessages: null,
+          unreadMessages: messageCountMap.has(client.id) ? messageCountMap.get(client.id) : null,
           pendingFiles: null,
         }));
-
-        // Fetch unread message counts
-        const { data: messageData, error: messageError } = await supabase
-          .rpc('get_unread_counts');
-
-        console.log('messageData', messageData)
-
-        if (!messageError && messageData) {
-          const messageCountMap = new Map();
-          messageData.forEach(item => {
-            messageCountMap.set(item.client_id, parseInt(item.count));
-          });
-
-          formattedClients.forEach(client => {
-            if (messageCountMap.has(client.id)) {
-              client.unreadMessages = messageCountMap.get(client.id);
-            }
-          });
-        }
 
         // Set the clients data
         setClients(formattedClients);

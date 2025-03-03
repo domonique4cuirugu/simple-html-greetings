@@ -5,12 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
@@ -30,15 +29,31 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, user, loading, onboardingCompleted, checkOnboardingStatus } = useAuth();
   const navigate = useNavigate();
-
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  
   useEffect(() => {
-    // If user is already logged in, redirect to homepage
-    if (user) {
-      navigate("/");
+    // If user is already logged in
+    const checkAuth = async () => {
+      if (user) {
+        // Check if onboarding is completed
+        const completed = await checkOnboardingStatus();
+        
+        if (completed) {
+          // If onboarding is completed, go to home
+          navigate("/");
+        } else {
+          // If onboarding is not completed, go to onboarding
+          navigate("/onboarding");
+        }
+      }
+    };
+    
+    if (!loading) {
+      checkAuth();
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate, onboardingCompleted, checkOnboardingStatus]);
   
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -60,7 +75,7 @@ const Auth = () => {
   const onLoginSubmit = async (values: LoginFormValues) => {
     try {
       await signIn(values.email, values.password);
-      navigate("/");
+      // Navigation will happen in the useEffect
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -68,11 +83,15 @@ const Auth = () => {
 
   const onSignupSubmit = async (values: SignupFormValues) => {
     try {
+      setIsSigningUp(true);
       await signUp(values.email, values.password);
+      // After signup, navigate to the login tab
       setActiveTab("login");
       signupForm.reset();
     } catch (error) {
       console.error("Signup error:", error);
+    } finally {
+      setIsSigningUp(false);
     }
   };
 
@@ -200,10 +219,10 @@ const Auth = () => {
                     />
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? (
+                    <Button type="submit" className="w-full" disabled={isSigningUp || loading}>
+                      {isSigningUp ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account
                         </>
                       ) : (
                         "Create Account"
