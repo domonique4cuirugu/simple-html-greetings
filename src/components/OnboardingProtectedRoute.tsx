@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
@@ -15,7 +15,7 @@ const OnboardingProtectedRoute: React.FC<OnboardingProtectedRouteProps> = ({
 }) => {
   const { user, loading, onboardingCompleted, checkOnboardingStatus } = useAuth();
   const location = useLocation();
-  const [checking, setChecking] = React.useState(true);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const check = async () => {
