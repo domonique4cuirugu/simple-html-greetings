@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Mail, Building, Clock, Edit, Trash, Upload, Download, Send } from "lucide-react";
@@ -110,14 +111,24 @@ const ClientDetail: React.FC = () => {
       const initialMessages: Message[] = [
         {
           id: "1",
-          sender: { id: "user-001", name: "You", avatar: "/avatars/7.png" },
+          sender: { 
+            id: "user-001", 
+            name: "You", 
+            avatar: "/avatars/7.png",
+            isAccountant: true // Add missing isAccountant property
+          },
           timestamp: new Date(),
           content: "Hello! How can I assist you today?",
           read: true,
         },
         {
           id: "2",
-          sender: { id: "client-001", name: client?.name || "Client", avatar: "/avatars/1.png" },
+          sender: { 
+            id: "client-001", 
+            name: client?.name || "Client", 
+            avatar: "/avatars/1.png",
+            isAccountant: false // Add missing isAccountant property
+          },
           timestamp: new Date(),
           content: "I have a question about my tax return.",
           read: true,
@@ -239,6 +250,7 @@ const ClientDetail: React.FC = () => {
         id: currentUserId,
         name: "You",
         avatar: "/avatars/7.png",
+        isAccountant: true // Add missing isAccountant property
       },
       timestamp: new Date(),
       content: newMessage,
@@ -399,9 +411,8 @@ const ClientDetail: React.FC = () => {
                 <MessageList messages={messages} currentUserId={currentUserId} />
                 <div ref={bottomRef} />
                 <MessageInput
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onSend={handleSendMessage}
+                  onSendMessage={handleSendMessage}
+                  placeholder="Type a message..."
                 />
               </CardContent>
             </Card>
