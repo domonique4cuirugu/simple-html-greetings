@@ -1,7 +1,8 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -9,32 +10,6 @@ interface MessageInputProps {
   placeholder?: string;
   disabled?: boolean;
 }
-
-// Simplified Textarea component since we don't have direct access to modify the UI components
-const Textarea = ({ 
-  value, 
-  onChange, 
-  placeholder,
-  disabled,
-  onKeyDown,
-  className
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  className?: string;
-}) => (
-  <textarea
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-    disabled={disabled}
-    onKeyDown={onKeyDown}
-    className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none min-h-[80px] ${className}`}
-  />
-);
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
@@ -75,12 +50,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <div className="flex space-x-2">
         <div className="flex-1">
           <Textarea
+            ref={textareaRef}
             value={message}
             onChange={handleChange}
             placeholder={placeholder}
             disabled={disabled}
             onKeyDown={handleKeyDown}
-            className="focus-visible:ring-1"
+            className="focus-visible:ring-1 min-h-[80px] resize-none"
           />
         </div>
         <div className="flex flex-col space-y-2">

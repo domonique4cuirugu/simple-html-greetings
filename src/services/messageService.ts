@@ -83,8 +83,14 @@ export const getMessagesForClient = async (clientId: string): Promise<Message[]>
     if (error) throw error;
     if (!data) return [];
 
-    // Mark messages as read
-    await markMessagesAsRead(clientId);
+    // Mark messages as read based on who's viewing them
+    // In a real app, we'd check if the viewer is an accountant or client and mark accordingly
+    const isAccountant = true; // This would come from auth context in a real app
+    if (isAccountant) {
+      await markMessagesAsRead(clientId, true); // Mark client messages as read
+    } else {
+      await markMessagesAsRead(clientId, false); // Mark accountant messages as read
+    }
 
     return data.map(msg => ({
       id: msg.id,
@@ -111,7 +117,7 @@ export const sendMessage = async (clientId: string, content: string, isAccountan
         client_id: clientId,
         content,
         sender_is_user: !isAccountant,
-        read: isAccountant // If accountant sends, it's already read
+        read: isAccountant // If accountant sends, it's already read by them
       });
 
     if (error) throw error;
@@ -122,13 +128,13 @@ export const sendMessage = async (clientId: string, content: string, isAccountan
   }
 };
 
-export const markMessagesAsRead = async (clientId: string): Promise<void> => {
+export const markMessagesAsRead = async (clientId: string, markClientMessages: boolean = true): Promise<void> => {
   try {
     const { error } = await supabase
       .from('client_messages')
       .update({ read: true })
       .eq('client_id', clientId)
-      .eq('sender_is_user', true);
+      .eq('sender_is_user', markClientMessages);
 
     if (error) throw error;
   } catch (error) {
