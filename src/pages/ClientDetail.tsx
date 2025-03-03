@@ -27,6 +27,7 @@ import FileList, { FileItem } from "@/components/FileList";
 import FileUpload from "@/components/FileUpload";
 import type { Message } from "@/services/messageService";
 import { fileService, getFileType } from "@/services/fileService";
+import { useQuery } from "@tanstack/react-query";
 
 interface Client {
   id: string;
@@ -44,7 +45,7 @@ interface Client {
 }
 
 const ClientDetail: React.FC = () => {
-  const { clientId } = useParams<{ clientId: string }>();
+  const { id: clientId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +62,16 @@ const ClientDetail: React.FC = () => {
   const currentUserId = "user-001"; // Replace with actual user ID
 
   useEffect(() => {
-    if (!clientId) return;
+    if (!clientId) {
+      toast({
+        title: "Error",
+        description: "Client ID is missing",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
+    
     fetchClient();
     fetchMessages();
     fetchFiles();
@@ -79,6 +89,8 @@ const ClientDetail: React.FC = () => {
   };
 
   const fetchClient = async () => {
+    if (!clientId) return;
+    
     setLoading(true);
     try {
       const { data, error } = await supabase

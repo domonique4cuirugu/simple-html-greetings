@@ -67,7 +67,7 @@ function App() {
                 }
               />
               <Route
-                path="/client/:id/messages"
+                path="/messages"
                 element={
                   <OnboardingProtectedRoute>
                     <Navigation />
@@ -78,7 +78,7 @@ function App() {
                 }
               />
               <Route
-                path="/client/:id/files"
+                path="/files"
                 element={
                   <OnboardingProtectedRoute>
                     <Navigation />
