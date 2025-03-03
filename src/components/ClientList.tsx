@@ -80,8 +80,8 @@ const ClientList: React.FC = () => {
         const messageCountMap = new Map();
         if (messageData) {
           messageData.forEach(item => {
-            // Fix: Use unread_count instead of count
-            messageCountMap.set(item.client_id, parseInt(item.unread_count));
+            // Fix: Convert the unread_count to a number but pass it as a number to the Map
+            messageCountMap.set(item.client_id, Number(item.unread_count));
           });
         }
 
